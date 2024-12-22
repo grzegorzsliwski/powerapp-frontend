@@ -1,8 +1,9 @@
 import { StatusBar } from "expo-status-bar";
-import { Text, View, ScrollView } from "react-native";
-import { Link, router } from "expo-router";
+import { Text, ScrollView } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "@/components/CustomButton";
+import "../global.css";
 
 const App = () => {
   return (

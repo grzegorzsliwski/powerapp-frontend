@@ -1,6 +1,13 @@
-import { View, Text, Image, ImageSourcePropType } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+} from "react-native";
 import { Tabs, Redirect } from "expo-router";
 import { icons } from "../../constants";
+import React from "react";
 
 interface TabIconProps {
   icon: ImageSourcePropType;
@@ -11,16 +18,16 @@ interface TabIconProps {
 
 const TabIcon: React.FC<TabIconProps> = ({ icon, color, name, focused }) => {
   return (
-    <View className="items-center justify-center gap-2">
+    <View className="w-20 items-center justify-center mt-4">
       <Image
         source={icon}
         resizeMode="contain"
         tintColor={color}
-        className="w-6 h-6"
+        className="w-6 h-6 mb-1"
       />
       <Text
         className={`${focused ? "font-psemibold" : "fontpregular"} text-xs`}
-        style={{ color: color }}
+        style={{ color: color, lineHeight: 16, textAlign: "center" }}
       >
         {name}
       </Text>
