@@ -1,5 +1,8 @@
 {
   "expo": {
+    "extra": {
+      "BASE_URL": "http://192.168.18.131:3000/"
+    },
     "name": "client",
     "slug": "client",
     "version": "1.0.0",

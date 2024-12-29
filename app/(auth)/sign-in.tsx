@@ -1,22 +1,40 @@
-import { StyleSheet, Text, View, ScrollView, Alert } from "react-native";
 import React, { useState } from "react";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FormField from "@/components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { Link, router } from "expo-router";
 import "../../global.css";
-import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import Constants from "expo-constants";
+import useApi from "../../hooks/useApi";
 import { validateEmail } from "../../utils/validation";
 
 const SignIn = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const saveTokens = async (accessToken: string, refreshToken: string) => {
     await SecureStore.setItemAsync("accessToken", accessToken);
   };
+
+  const { isLoading, error, callApi } = useApi(
+    `${Constants.expoConfig?.extra?.BASE_URL}users/signin`,
+    "POST",
+    {
+      onSuccess: async (data) => {
+        await saveTokens(data.accessToken, data.refreshToken);
+        router.push("/training");
+      },
+      onError: (err) => {
+        setErrors((prev) => ({
+          ...prev,
+          password:
+            err.response?.data?.message || "An unexpected error occurred.",
+        }));
+      },
+    }
+  );
 
   const handleValidation = () => {
     let isValid = true;
@@ -42,47 +60,13 @@ const SignIn = () => {
   const submit = async () => {
     if (!handleValidation()) return;
 
-    setIsSubmitting(true);
-
     try {
-      const response = await axios.post(
-        "http://192.168.0.25:3000/users/signin",
-        {
-          email: form.email.trim(),
-          password: form.password.trim(),
-        }
-      );
-
-      if (response.data.status === "SUCCESS") {
-        await saveTokens(response.data.accessToken, response.data.refreshToken);
-
-        console.log("Access Token:", response.data.accessToken);
-        console.log("Refresh Token:", response.data.refreshToken);
-        router.push("/training");
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          password: response.data.message || "An error occurred.",
-        }));
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        setErrors((prev) => ({
-          ...prev,
-          password:
-            error.response?.data?.message || "An unexpected error occurred.",
-        }));
-
-        console.error("API Error:", error.response);
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          password: "An unexpected error occurred.",
-        }));
-        console.error("Unexpected Error:", error);
-      }
-    } finally {
-      setIsSubmitting(false);
+      await callApi({
+        email: form.email.trim(),
+        password: form.password.trim(),
+      });
+    } catch (err) {
+      console.error("Submit Error:", err);
     }
   };
 
@@ -120,7 +104,7 @@ const SignIn = () => {
             title="Sign In"
             handlePress={submit}
             containerStyle="mt-7"
-            isLoading={isSubmitting}
+            isLoading={isLoading}
           />
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-base-100 font-plight text-white">
@@ -140,5 +124,3 @@ const SignIn = () => {
 };
 
 export default SignIn;
-
-const styles = StyleSheet.create({});
