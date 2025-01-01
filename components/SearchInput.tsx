@@ -18,8 +18,6 @@ const SearchInput: React.FC<SearchInputProps> = ({
   keyboardType = "default",
   ...props
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
-
   return (
     <View
       className={
@@ -40,6 +38,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           source={icons.search}
           className="w-5 h-5"
           resizeMode="contain"
+          tintColor={"white"}
         ></Image>
       </TouchableOpacity>
     </View>

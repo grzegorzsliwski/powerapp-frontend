@@ -18,11 +18,15 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      className="p-4 my-2 border border-gray-300 rounded-lg bg-gray-100"
+      className="p-2 bg-primary"
       onPress={() => onPress(id)}
+      style={{
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#CDCDE0",
+      }}
     >
       <View className="flex-row items-center">
-        <View className="w-16 h-16 rounded-full bg-gray-200 justify-center items-center shadow-md mr-4">
+        <View className="w-14 h-14 rounded-full bg-gray-200 justify-center items-center shadow-md mr-4">
           <Image
             source={{ uri: muscleGroupImage }}
             className="w-10 h-10"
@@ -30,8 +34,10 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
           />
         </View>
         <View>
-          <Text className="text-lg font-bold mb-1">{exerciseName}</Text>
-          <Text className="text-base text-gray-600">
+          <Text className="text-md font-bold mb-1 text-white">
+            {exerciseName}
+          </Text>
+          <Text className="text-xs text-gray-100">
             {exercisePrimaryMuscleGroup}
           </Text>
         </View>

@@ -1,20 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 
-interface MuscleGroup {
+interface Group {
   id: number;
-  muscleGroupName: string;
-  muscleGroupImage: string;
+  groupName: string;
+  groupImage: string;
 }
 
-interface MuscleGroupsProps {
-  muscleGroups: MuscleGroup[];
+interface GroupsProps {
+  groups: Group[];
   onPress: (id: number) => void;
+  selectedGroupId: number | null;
 }
 
-const SearchByMuscleGroup: React.FC<MuscleGroupsProps> = ({
-  muscleGroups,
+const SearchByGroup: React.FC<GroupsProps> = ({
+  groups,
   onPress,
+  selectedGroupId,
 }) => {
   return (
     <View
@@ -26,7 +28,7 @@ const SearchByMuscleGroup: React.FC<MuscleGroupsProps> = ({
     >
       <FlatList
         horizontal
-        data={muscleGroups}
+        data={groups}
         keyExtractor={(item) => item.id.toString()}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
@@ -37,13 +39,19 @@ const SearchByMuscleGroup: React.FC<MuscleGroupsProps> = ({
           >
             <View className="w-16 h-16 rounded-full bg-gray-200 justify-center items-center shadow-md">
               <Image
-                source={{ uri: item.muscleGroupImage }}
+                source={{ uri: item.groupImage }}
                 className="w-10 h-10"
                 resizeMode="contain"
               />
             </View>
-            <Text className="mt-2 text-xs text-center text-gray-100">
-              {item.muscleGroupName}
+            <Text
+              className={`mt-2 text-xs text-center ${
+                selectedGroupId === item.id
+                  ? "text-gray-100 font-bold"
+                  : "text-gray-100"
+              }`}
+            >
+              {item.groupName}
             </Text>
           </TouchableOpacity>
         )}
@@ -52,4 +60,4 @@ const SearchByMuscleGroup: React.FC<MuscleGroupsProps> = ({
   );
 };
 
-export default SearchByMuscleGroup;
+export default SearchByGroup;
