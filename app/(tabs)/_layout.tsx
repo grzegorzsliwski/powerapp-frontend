@@ -67,6 +67,7 @@ const TabsLayout = () => {
             ),
           }}
         />
+
         <Tabs.Screen
           name="routines"
           options={{

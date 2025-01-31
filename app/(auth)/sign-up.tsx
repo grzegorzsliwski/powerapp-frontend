@@ -13,6 +13,7 @@ import {
 } from "../../utils/validation";
 import Constants from "expo-constants";
 import useApi from "../../hooks/useApi";
+import useAuthApi from "@/hooks/useAuthApi";
 
 const SignUp = () => {
   const [form, setForm] = useState({ email: "", password: "", username: "" });
@@ -26,7 +27,7 @@ const SignUp = () => {
     await SecureStore.setItemAsync("accessToken", accessToken);
   };
 
-  const { isLoading, callApi } = useApi(
+  const { isLoading, callApi } = useAuthApi(
     `${Constants.expoConfig?.extra?.BASE_URL}users/signup`,
     "POST",
     {

@@ -9,6 +9,7 @@ import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import useApi from "../../hooks/useApi";
 import { validateEmail } from "../../utils/validation";
+import useAuthApi from "@/hooks/useAuthApi";
 
 const SignIn = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -16,9 +17,10 @@ const SignIn = () => {
 
   const saveTokens = async (accessToken: string, refreshToken: string) => {
     await SecureStore.setItemAsync("accessToken", accessToken);
+    await SecureStore.setItemAsync("refreshToken", refreshToken);
   };
 
-  const { isLoading, error, callApi } = useApi(
+  const { isLoading, error, callApi } = useAuthApi(
     `${Constants.expoConfig?.extra?.BASE_URL}users/signin`,
     "POST",
     {

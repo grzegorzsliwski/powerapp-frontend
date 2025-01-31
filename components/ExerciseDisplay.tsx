@@ -2,11 +2,11 @@ import React from "react";
 import { TouchableOpacity, View, Text, Image } from "react-native";
 
 interface ExerciseProps {
-  id: number;
+  id: string;
   exerciseName: string;
   exercisePrimaryMuscleGroup: string;
   muscleGroupImage: string;
-  onPress: (id: number) => void;
+  onPress: (id: string) => void;
 }
 
 const ExerciseDisplay: React.FC<ExerciseProps> = ({
@@ -28,7 +28,11 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
       <View className="flex-row items-center">
         <View className="w-14 h-14 rounded-full bg-gray-200 justify-center items-center shadow-md mr-4">
           <Image
-            source={{ uri: muscleGroupImage }}
+            source={
+              muscleGroupImage
+                ? { uri: muscleGroupImage }
+                : require("@/assets/images/exerciseimg.png")
+            }
             className="w-10 h-10"
             resizeMode="contain"
           />

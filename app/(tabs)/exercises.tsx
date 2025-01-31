@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FlatList, Text, TouchableOpacity, View, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SearchInput from "@/components/SearchInput";
@@ -6,10 +6,34 @@ import SearchByGroup from "@/components/SearchByGroup";
 import ExerciseDisplay from "@/components/ExerciseDisplay";
 import { icons } from "../../constants";
 import TabSelect from "@/components/TabSelect";
+import useApi from "@/hooks/useApi";
+import Constants from "expo-constants";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "@/types/navigationTypes";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { router } from "expo-router";
+
+interface Exercise {
+  _id: string;
+  exerciseName: string;
+  primaryMuscleGroup?: {
+    muscleGroupName: string;
+    image?: string;
+  };
+  secondaryMuscleGroups?: { muscleGroupName: string }[];
+  equipmentType?: string;
+  description?: string;
+  imageUrl?: string;
+  instructions?: string[];
+}
 
 const Exercises = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleGroupPress = (id: number) => {
     if (selectedGroupId === id) {
@@ -20,8 +44,16 @@ const Exercises = () => {
     }
   };
 
-  const handleExercisePress = (id: number) => {
-    console.log("Selected exercise ID:", id);
+  // const handleExercisePress = (id: string) => {
+  //   console.log(id);
+  //   navigation.navigate("exercises", {
+  //     screen: "exercise/exercise-details",
+  //     params: { id: id },
+  //   });
+  // };
+
+  const handleExercisePress = (id: string) => {
+    router.push(`/exercise/exercise-details?id=${id}`);
   };
 
   const muscleGroups = [
@@ -55,33 +87,13 @@ const Exercises = () => {
     { id: 4, groupName: "Body Weight", groupImage: "asd" },
   ];
 
-  const exercises = [
-    {
-      id: 1,
-      exerciseName: "Bench Press",
-      exercisePrimaryMuscleGroup: "Chest",
-      muscleGroupImage: "https://example.com/chest.png",
-    },
-    {
-      id: 2,
-      exerciseName: "Deadlift",
-      exercisePrimaryMuscleGroup: "Back",
-      muscleGroupImage: "https://example.com/back.png",
-    },
-    {
-      id: 3,
-      exerciseName: "Squat",
-      exercisePrimaryMuscleGroup: "Legs",
-      muscleGroupImage: "https://example.com/legs.png",
-    },
-  ];
-
   const tabs = ["Body Part", "Accessory", "Category"];
 
-  const handleTabChange = (index: number) => {
+  const handleTabChange = async (index: number) => {
     setActiveTab(index);
     setSelectedGroupId(null);
     console.log(`Selected tab: ${tabs[index]}`);
+    await fetchExercises();
   };
 
   const getTabData = () => {
@@ -97,17 +109,44 @@ const Exercises = () => {
     }
   };
 
+  const { isLoading, error, callApi } = useApi(
+    `${Constants.expoConfig?.extra?.BASE_URL}exercises/list`,
+    "GET",
+    {
+      onSuccess: (data) => {
+        setExercises(data);
+      },
+      onError: (err) => {
+        console.error("Error fetching exercises:", err);
+      },
+    }
+  );
+
+  const fetchExercises = async () => {
+    try {
+      await callApi();
+    } catch (err) {
+      console.error("Failed to fetch exercises:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchExercises();
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <FlatList
         data={exercises}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id.toString()}
         renderItem={({ item }) => (
           <ExerciseDisplay
-            id={item.id}
+            id={item._id}
             exerciseName={item.exerciseName}
-            exercisePrimaryMuscleGroup={item.exercisePrimaryMuscleGroup}
-            muscleGroupImage={item.muscleGroupImage}
+            exercisePrimaryMuscleGroup={
+              item.primaryMuscleGroup?.muscleGroupName || "Unknown"
+            }
+            muscleGroupImage={item.primaryMuscleGroup?.image || ""}
             onPress={handleExercisePress}
           />
         )}
