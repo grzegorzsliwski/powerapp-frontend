@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 
 interface Group {
-  id: number;
+  id: string;
   groupName: string;
   groupImage: string;
 }
 
 interface GroupsProps {
   groups: Group[];
-  onPress: (id: number) => void;
-  selectedGroupId: number | null;
+  onPress: (id: string) => void;
+  selectedGroupId: string | null;
 }
 
 const SearchByGroup: React.FC<GroupsProps> = ({
@@ -18,6 +18,10 @@ const SearchByGroup: React.FC<GroupsProps> = ({
   onPress,
   selectedGroupId,
 }) => {
+  useEffect(() => {
+    console.log("Groups received in SearchByGroup:", groups);
+  }, [groups]);
+
   return (
     <View
       className="pb-4"
@@ -39,7 +43,11 @@ const SearchByGroup: React.FC<GroupsProps> = ({
           >
             <View className="w-16 h-16 rounded-full bg-gray-200 justify-center items-center shadow-md">
               <Image
-                source={{ uri: item.groupImage }}
+                source={
+                  item.groupImage
+                    ? { uri: item.groupImage }
+                    : require("@/assets/images/exerciseimg.png")
+                }
                 className="w-10 h-10"
                 resizeMode="contain"
               />

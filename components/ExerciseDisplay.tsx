@@ -4,16 +4,20 @@ import { TouchableOpacity, View, Text, Image } from "react-native";
 interface ExerciseProps {
   id: string;
   exerciseName: string;
+  equipmentName: string;
   exercisePrimaryMuscleGroup: string;
   muscleGroupImage: string;
+  variantName: string;
   onPress: (id: string) => void;
 }
 
 const ExerciseDisplay: React.FC<ExerciseProps> = ({
   id,
   exerciseName,
+  equipmentName,
   exercisePrimaryMuscleGroup,
   muscleGroupImage,
+  variantName,
   onPress,
 }) => {
   return (
@@ -39,7 +43,7 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
         </View>
         <View>
           <Text className="text-md font-bold mb-1 text-white">
-            {exerciseName}
+            {`${equipmentName} ${variantName} ${exerciseName}`}
           </Text>
           <Text className="text-xs text-gray-100">
             {exercisePrimaryMuscleGroup}
