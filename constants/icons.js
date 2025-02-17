@@ -12,7 +12,7 @@ import eyeHide from "../assets/icons/eye-hide.png";
 import eye from "../assets/icons/eye.png";
 import play from "../assets/icons/play.png";
 import exercises from "../assets/icons/exercises.png";
-import routines from "../assets/icons/routines.png";
+import program from "../assets/icons/program.png";
 import calendar from "../assets/icons/calendar.png";
 import training from "../assets/icons/training.png";
 
@@ -31,7 +31,7 @@ export default {
   eyeHide,
   eye,
   exercises,
-  routines,
+  program,
   calendar,
   training,
 };

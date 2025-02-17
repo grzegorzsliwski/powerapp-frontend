@@ -41,7 +41,7 @@ const SearchByGroup: React.FC<GroupsProps> = ({
             className="items-center mx-2"
             onPress={() => onPress(item.id)}
           >
-            <View className="w-16 h-16 rounded-full bg-gray-200 justify-center items-center shadow-md">
+            <View className="w-16 h-16 rounded-xl bg-gray-200 justify-center items-center shadow-md">
               <Image
                 source={
                   item.groupImage
@@ -53,10 +53,10 @@ const SearchByGroup: React.FC<GroupsProps> = ({
               />
             </View>
             <Text
-              className={`mt-2 text-xs text-center ${
+              className={`mt-2 text-xs text-center font-pmedium text-gray-300 ${
                 selectedGroupId === item.id
-                  ? "text-gray-100 font-bold"
-                  : "text-gray-100"
+                  ? "text-gray-300 font-pbold"
+                  : "text-gray-300"
               }`}
             >
               {item.groupName}

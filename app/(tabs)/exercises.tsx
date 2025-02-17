@@ -15,14 +15,10 @@ interface Exercise {
   exerciseName: string;
   primaryMuscleGroup: {
     muscleGroupName: string;
-    imageUrl: string;
   };
-  secondaryMuscleGroups?: { muscleGroupName: string }[];
   equipmentType?: { equipmentName: string };
   variantType?: { variantName: string };
-  description?: string;
   imageUrl?: string;
-  instructions?: string[];
 }
 
 interface MuscleGroup {
@@ -145,7 +141,6 @@ const Exercises = () => {
           setAccessories(data.accessories || []);
           setEquipment(data.equipment || []);
           setVariant(data.variantType || []);
-          console.log(data.variantType);
         }
       },
       onError: (err) => {
@@ -172,8 +167,8 @@ const Exercises = () => {
             exercisePrimaryMuscleGroup={
               item.primaryMuscleGroup?.muscleGroupName || "Unknown"
             }
-            variantName={item.variantType?.variantName || "asd"}
-            muscleGroupImage={item.primaryMuscleGroup.imageUrl || "image"}
+            variantName={item.variantType?.variantName || ""}
+            muscleGroupImage={item.imageUrl || "image"}
             onPress={handleExercisePress}
           />
         )}

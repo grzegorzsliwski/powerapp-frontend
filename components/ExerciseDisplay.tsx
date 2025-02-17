@@ -30,7 +30,7 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
       }}
     >
       <View className="flex-row items-center">
-        <View className="w-14 h-14 rounded-full bg-gray-200 justify-center items-center shadow-md mr-4">
+        <View className="my-2 w-14 h-14  rounded-xl bg-gray-200 justify-center items-center shadow-md mr-4">
           <Image
             source={
               muscleGroupImage
@@ -41,11 +41,12 @@ const ExerciseDisplay: React.FC<ExerciseProps> = ({
             resizeMode="contain"
           />
         </View>
-        <View>
-          <Text className="text-md font-bold mb-1 text-white">
-            {`${equipmentName} ${variantName} ${exerciseName}`}
+        <View className="flex-1">
+          <Text className="font-pmedium text-m text-white line-clamp-1">
+            {[equipmentName, exerciseName].filter(Boolean).join(" ")}{" "}
+            {variantName ? `(${variantName})` : ""}
           </Text>
-          <Text className="text-xs text-gray-100">
+          <Text className="font-pmedium text-xs text-gray-300">
             {exercisePrimaryMuscleGroup}
           </Text>
         </View>
