@@ -70,17 +70,13 @@ const Program = () => {
   const handleDuplicate = async (programId: string) => {
     try {
       await duplicateProgram();
-    } catch (error) {
-      // Error handling is managed by useApi hook through onError callback
-    }
+    } catch (error) {}
   };
 
   const handleDelete = async (programId: string) => {
     try {
       await deleteProgram();
-    } catch (error) {
-      // Error handling is managed by useApi hook through onError callback
-    }
+    } catch (error) {}
   };
 
   const bottomSheetOptions = [
@@ -115,7 +111,7 @@ const Program = () => {
       <View className="w-full px-4 mt-8">
         <CustomButton
           title="Create New Program"
-          handlePress={() => router.push("/program/create")}
+          handlePress={() => router.push("/program/create-program")}
         />
 
         {error && (
