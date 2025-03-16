@@ -28,7 +28,9 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <View className={`space-y-2 ${otherStyles}`}>
-      <Text className="text-base-100 font-pmedium text-white">{title}</Text>
+      <Text className="font-pmedium text-l text-white line-clamp-1 mb-2">
+        {title}
+      </Text>
       <View
         className={`border-2 ${
           hasError ? "border-red-500" : "border-black-200"
