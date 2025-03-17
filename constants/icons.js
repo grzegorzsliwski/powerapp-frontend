@@ -15,6 +15,7 @@ import exercises from "../assets/icons/exercises.png";
 import program from "../assets/icons/program.png";
 import calendar from "../assets/icons/calendar.png";
 import training from "../assets/icons/training.png";
+import moreTime from "../assets/icons/more-time.png";
 
 export default {
   play,
@@ -34,4 +35,5 @@ export default {
   program,
   calendar,
   training,
+  moreTime,
 };

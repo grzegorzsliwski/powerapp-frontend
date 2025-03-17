@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from "react";
-import { View, FlatList } from "react-native";
+import { View, FlatList, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "expo-router";
 import CustomHeaderButton from "@/components/CustomHeaderButton";
@@ -8,6 +8,7 @@ import { WeekSelector } from "@/components/program/WeekSelector";
 import { SessionList } from "@/components/program/SessionList";
 import { useProgramForm } from "@/hooks/useProgramForm";
 import { useFormAnimation } from "@/hooks/useFormAnimation";
+import CustomSecondaryButton from "@/components/CustomSecondaryButton";
 
 const CreateProgram = () => {
   const {
@@ -15,12 +16,8 @@ const CreateProgram = () => {
     updateForm,
     isMultiWeek,
     setIsMultiWeek,
-    totalQuantity,
-    setTotalQuantity,
-    displayTotalQuantity,
     currentWeek,
     setCurrentWeek,
-    handleWeekChange,
   } = useProgramForm();
 
   const { formAnimation, formOpacity, handleScroll, formHeight } =
@@ -28,7 +25,6 @@ const CreateProgram = () => {
 
   const navigation = useNavigation();
 
-  // Updated sessions state to include weekNumber
   const [sessions, setSessions] = useState<
     {
       id: string;
@@ -60,26 +56,16 @@ const CreateProgram = () => {
     });
   }, [navigation]);
 
-  const handleAddSession = () => {
-    const newSession = {
-      id: String(Date.now()),
-      name: `Session ${getWeekSessionCount(currentWeek) + 1}`,
-      numberOfExercises: 0,
-      weekNumber: currentWeek,
-    };
-
-    setSessions([...sessions, newSession]);
-  };
-
-  const getWeekSessionCount = (weekNum: number) => {
-    return sessions.filter((session) => session.weekNumber === weekNum).length;
-  };
-
-  const currentWeekSessions = sessions.filter(
-    (session) => session.weekNumber === currentWeek
-  );
-  const handleSessionPress = (id: string) => {
-    console.log("Session pressed:", id);
+  const addSession = () => {
+    setSessions((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        name: "Session",
+        numberOfExercises: 0,
+        weekNumber: currentWeek ?? 1,
+      },
+    ]);
   };
 
   return (
@@ -92,10 +78,6 @@ const CreateProgram = () => {
         updateForm={updateForm}
         isMultiWeek={isMultiWeek}
         setIsMultiWeek={setIsMultiWeek}
-        totalQuantity={totalQuantity}
-        setTotalQuantity={setTotalQuantity}
-        displayTotalQuantity={displayTotalQuantity}
-        handleWeekChange={handleWeekChange}
         formAnimation={formAnimation}
         formOpacity={formOpacity}
       />
@@ -103,7 +85,13 @@ const CreateProgram = () => {
       <FlatList
         data={[{ id: 1 }]}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={() => <View />}
+        renderItem={({ item }) => (
+          <SessionList
+            sessions={sessions}
+            setSessions={setSessions}
+            currentWeek={currentWeek}
+          />
+        )}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         contentContainerStyle={{
@@ -111,24 +99,33 @@ const CreateProgram = () => {
           backgroundColor: "#161622",
         }}
         ListHeaderComponent={() => (
-          <View style={{ display: isMultiWeek ? "flex" : "none" }}>
-            {isMultiWeek ? (
+          <>
+            {isMultiWeek && (
               <WeekSelector
-                displayTotalQuantity={displayTotalQuantity}
-                currentWeek={currentWeek}
-                setCurrentWeek={setCurrentWeek}
-              />
-            ) : null}
-          </View>
+                programLength={form.programLength}
+                currentWeek={currentWeek ?? 1}
+                setCurrentWeek={(week: number) => setCurrentWeek(week)}
+              ></WeekSelector>
+            )}
+            {isMultiWeek ? (
+              <Text className="font-pmedium text-white px-4 py-2">
+                Week {currentWeek ?? 1} sessions
+              </Text>
+            ) : (
+              <Text className="font-pmedium text-white px-4 py-2">
+                Sessions
+              </Text>
+            )}
+          </>
         )}
         ListFooterComponent={() => (
-          <SessionList
-            isMultiWeek={isMultiWeek}
-            currentWeek={currentWeek}
-            onAddSession={handleAddSession}
-            sessions={currentWeekSessions}
-            onPress={handleSessionPress}
-          />
+          <View className="px-4 py-2">
+            <CustomSecondaryButton
+              title="Add Session"
+              icon="add"
+              handlePress={addSession}
+            />
+          </View>
         )}
       />
     </SafeAreaView>

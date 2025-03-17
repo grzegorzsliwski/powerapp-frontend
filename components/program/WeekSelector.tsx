@@ -2,18 +2,19 @@ import React from "react";
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 
 interface WeekSelectorProps {
-  displayTotalQuantity: number;
+  programLength: number | null;
   currentWeek: number;
   setCurrentWeek: (week: number) => void;
 }
 
 export const WeekSelector: React.FC<WeekSelectorProps> = ({
-  displayTotalQuantity,
+  programLength,
   currentWeek,
   setCurrentWeek,
 }) => {
   const getWeeksArray = () => {
-    return Array.from({ length: displayTotalQuantity }, (_, i) => ({
+    if (programLength === null) return [];
+    return Array.from({ length: programLength }, (_, i) => ({
       week: i + 1,
       id: i.toString(),
     }));

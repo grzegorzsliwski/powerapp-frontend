@@ -1,6 +1,6 @@
 export interface ProgramFormData {
   programName: string;
-  numberOfWeeks: string;
+  programLength: number | null;
 }
 
 export interface Program {

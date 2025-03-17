@@ -1,19 +1,14 @@
 import React from "react";
-import { View, Text, Animated } from "react-native";
-import Checkbox from "expo-checkbox";
-import Slider from "@react-native-community/slider";
+import { View, Text, Animated, Switch } from "react-native";
 import FormField from "@/components/FormField";
 import { ProgramFormData } from "../../types/programTypes";
+import ProgramLengthDropdown from "../program/ProgramLengthDropdown";
 
 interface ProgramFormProps {
   form: ProgramFormData;
   updateForm: (field: keyof ProgramFormData, value: string) => void;
   isMultiWeek: boolean;
   setIsMultiWeek: (value: boolean) => void;
-  totalQuantity: number;
-  setTotalQuantity: (value: number) => void;
-  displayTotalQuantity: number;
-  handleWeekChange: (value: number) => void;
   formAnimation: Animated.AnimatedInterpolation<number>;
   formOpacity: Animated.AnimatedInterpolation<number>;
 }
@@ -23,10 +18,6 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
   updateForm,
   isMultiWeek,
   setIsMultiWeek,
-  totalQuantity,
-  setTotalQuantity,
-  displayTotalQuantity,
-  handleWeekChange,
   formAnimation,
   formOpacity,
 }) => {
@@ -49,10 +40,11 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
         />
 
         <View className="flex-row items-center">
-          <Checkbox
+          <Switch
             value={isMultiWeek}
-            onValueChange={setIsMultiWeek}
-            color={isMultiWeek ? "#FF9C01" : undefined}
+            onValueChange={(value) => setIsMultiWeek(value)}
+            thumbColor={isMultiWeek ? "#CDCDE0" : "#CDCDE0"}
+            trackColor={{ false: "#1E1E2D", true: "#FF9C01" }}
           />
           <Text className="font-pmedium text-white ml-2">
             Create multi-week program
@@ -60,21 +52,10 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
         </View>
 
         {isMultiWeek && (
-          <View className="py-4">
-            <Text className="font-pmedium text-l text-white line-clamp-1 mb-2">
-              Select Program Length: {displayTotalQuantity}{" "}
-              {displayTotalQuantity === 1 ? "Week" : "Weeks"}
-            </Text>
-            <Slider
-              step={1}
-              value={totalQuantity}
-              minimumValue={1}
-              maximumValue={16}
-              onSlidingComplete={(value: number) => setTotalQuantity(value)}
-              onValueChange={handleWeekChange}
-              minimumTrackTintColor="#FF9C01"
-              maximumTrackTintColor="#7b7b8b"
-              thumbTintColor="#FF9C01"
+          <View className="mt-4">
+            <ProgramLengthDropdown
+              value={form.programLength ? form.programLength.toString() : null}
+              setValue={(value) => updateForm("programLength", value)}
             />
           </View>
         )}
