@@ -3,7 +3,7 @@ import { Animated } from "react-native";
 
 export const useFormAnimation = (isMultiWeek: boolean) => {
   const scrollY = useRef(new Animated.Value(0)).current;
-  const formHeight = isMultiWeek ? 270 : 170;
+  const formHeight = isMultiWeek ? 250 : 170;
 
   const formAnimation = scrollY.interpolate({
     inputRange: [0, formHeight],
