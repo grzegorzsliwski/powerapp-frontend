@@ -8,7 +8,7 @@ import { WeekSelector } from "@/components/program/WeekSelector";
 import {
   SessionList,
   SessionListHandle,
-} from "@/components/program/SessionList";
+} from "@/components/session/SessionList";
 import { useProgramForm } from "@/hooks/useProgramForm";
 import { useFormAnimation } from "@/hooks/useFormAnimation";
 import CustomSecondaryButton from "@/components/CustomSecondaryButton";
