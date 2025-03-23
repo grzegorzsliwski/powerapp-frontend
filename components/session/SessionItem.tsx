@@ -7,19 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Session } from "../../types/sessionTypes";
-
-interface SessionItemProps {
-  session: Session;
-  index: number;
-  isExpanded: boolean;
-  onToggle: (index: number) => void;
-  onPress: (sessionId: string) => void;
-  onDelete: (sessionId: string) => void;
-  onLongPress: () => void;
-  animatedHeight: Animated.Value;
-  isDragging?: boolean;
-}
+import { Session, SessionItemProps } from "../../types/sessionTypes";
 
 export const SessionItem = ({
   session,

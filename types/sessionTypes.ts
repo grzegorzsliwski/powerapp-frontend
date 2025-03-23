@@ -1,4 +1,4 @@
-import { Animated, LayoutChangeEvent } from "react-native";
+import { Animated, GestureResponderEvent } from "react-native";
 
 export type Session = {
   id: string;
@@ -23,12 +23,11 @@ export type SessionItemProps = {
   onToggle: (index: number) => void;
   onPress: (sessionId: string) => void;
   onDelete: (sessionId: string) => void;
-  onLongPress: (index: number) => void;
+  onLongPress: (event: GestureResponderEvent) => void;
   animatedHeight: Animated.Value;
   isDragging: boolean;
   panHandlers?: any;
   panY?: Animated.Value;
-  onLayout: (event: LayoutChangeEvent) => void;
 };
 
 export type SessionListHandle = {
