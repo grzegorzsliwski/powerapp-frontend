@@ -1,27 +1,48 @@
-import { useState, useCallback, useEffect } from "react";
-import { ProgramFormData } from "../types/programTypes";
+import Constants from "expo-constants";
+import { useState } from "react";
+import useApi from "./useApi";
+import { Program } from "@/types/programTypes";
+
+const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
 export const useProgramForm = () => {
-  const [form, setForm] = useState<ProgramFormData>({
-    programName: "",
-    programLength: null,
-  });
+  const [programName, setProgramName] = useState<string>("New Program");
+  const [programLength, setProgramLength] = useState<number | null>(1);
+  const [programDescription, setProgramDescription] = useState<string>("");
   const [isMultiWeek, setIsMultiWeek] = useState(false);
-  const [currentWeek, setCurrentWeek] = useState<number | null>(null);
+  const [isRepeated, setIsRepeated] = useState(false);
 
-  const updateForm = useCallback(
-    (field: keyof ProgramFormData, value: string) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
+  const { callApi } = useApi<Program>(`${BASE_URL}program/create`, "POST", {
+    onSuccess: () => {
+      console.log("Program created successfully");
     },
-    []
-  );
+    onError: (error) => console.error("Failed to create program:", error),
+  });
+
+  const handleCreateProgram = () => {
+    console.log("Program Data:");
+    const programData = {
+      name: programName,
+      length: programLength,
+      description: programDescription,
+      isMultiWeek,
+      isRepeated,
+    };
+    callApi(programData);
+    console.log("Program Data:", programData);
+  };
 
   return {
-    form,
-    updateForm,
+    programName,
+    setProgramName,
+    programLength,
+    setProgramLength,
+    programDescription,
+    setProgramDescription,
     isMultiWeek,
     setIsMultiWeek,
-    currentWeek,
-    setCurrentWeek,
+    isRepeated,
+    setIsRepeated,
+    handleCreateProgram,
   };
 };

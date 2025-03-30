@@ -5,9 +5,12 @@ export interface ProgramFormData {
 
 export interface Program {
   id: string;
-  name: string;
-  weeks: number;
   sessions: Session[];
+  name: string;
+  length: number;
+  description: string;
+  isMultiWeek: boolean;
+  isRepeated: boolean;
 }
 
 export interface Session {

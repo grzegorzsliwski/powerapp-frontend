@@ -21,7 +21,7 @@ const TrainingProgram: React.FC<ExerciseProps> = ({
       className="p-2 bg-primary w-full"
       onPress={() => onPress(id)}
       style={{
-        borderBottomWidth: 0.5,
+        borderBottomWidth: 1,
         borderBottomColor: "#CDCDE0",
       }}
     >

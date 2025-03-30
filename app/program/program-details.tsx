@@ -1,130 +1,119 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import useApi from "@/hooks/useApi";
-import Constants from "expo-constants";
-import { useLocalSearchParams } from "expo-router";
+import React, { useLayoutEffect, useState, useRef } from "react";
+import { View, Text } from "react-native";
+import { useNavigation } from "expo-router";
+import { StatusBar } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import Animated from "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-interface Session {
-  _id: string;
-  id: string;
-  weekNumber: number;
-  dayNumber: number;
-  sessionName: string;
-  exercises: { exerciseName: string; duration: number }[];
-}
+import CustomHeaderButton from "@/components/CustomHeaderButton";
+import { ProgramForm } from "@/components/program/ProgramForm";
+import { WeekSelector } from "@/components/program/WeekSelector";
+import { useProgramForm } from "@/hooks/useProgramForm";
+import { useFormAnimation } from "@/hooks/useFormAnimation";
+import CustomSecondaryButton from "@/components/CustomSecondaryButton";
+import MovableSession from "@/components/session/MovableSession";
+import { SESSIONS } from "@/data/sessionData";
+import { SESSION_HEIGHT } from "@/constants/sessionConstants";
+import { usePositions } from "@/hooks/usePosition";
 
-interface Program {
-  id: string;
-  programName: string;
-  numberOfWeeks: number;
-  sessions: Session[];
-}
+const CreateProgram = () => {
+  const navigation = useNavigation();
 
-const ProgramDetails = () => {
-  const { id } = useLocalSearchParams();
-  const [program, setProgram] = useState<Program | null>(null);
-  const [expandedSessions, setExpandedSessions] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const { positions, scrollY, scrollViewRef, handleScroll } =
+    usePositions(SESSIONS);
 
-  const { isLoading, error, callApi } = useApi(
-    `${Constants.expoConfig?.extra?.BASE_URL}program/${id}`,
-    "GET",
-    {
-      onSuccess: (data) => {
-        setProgram(data);
-        console.log(data);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "Create Program",
+      headerStyle: {
+        backgroundColor: "#161622",
       },
-      onError: (err) => console.error("Error fetching program details:", err),
-    }
-  );
+      headerTitleStyle: {
+        color: "#FFFFFF",
+        fontFamily: "Poppins-Medium",
+        fontSize: 20,
+      },
+      headerTintColor: "#FFFFFF",
+      headerRight: () => (
+        <CustomHeaderButton
+          title="Save"
+          handlePress={() => {}}
+          containerStyle="mr-4 py-1"
+        />
+      ),
+    });
+  }, []);
 
-  useEffect(() => {
-    callApi();
-  }, [id]);
+  // const addSession = () => {
+  //   const newSession = {
+  //     id: SESSIONS.length + 1,
+  //     name: `Session ${SESSIONS.length + 1}`,
+  //     numberOfExercises: 0,
+  //     weekNumber: currentWeek ?? 1,
+  //     image: "https://example.com/image.png",
+  //   };
+  //   SESSIONS.push(newSession);
+  //   setSessions([...SESSIONS]);
+  // };
 
-  const toggleSession = (sessionId: string) => {
-    setExpandedSessions((prev) => ({
-      ...prev,
-      [sessionId]: !prev[sessionId],
-    }));
-  };
-
-  if (isLoading) {
-    return (
-      <SafeAreaView className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#FFFFFF" />
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView className="flex-1 justify-center items-center">
-        <Text className="text-red-500">Failed to load program details.</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (!program) {
-    return (
-      <SafeAreaView className="flex-1 justify-center items-center">
-        <Text className="text-white">No program data available.</Text>
-      </SafeAreaView>
-    );
-  }
+  // const saveProgram = () => {
+  //   console.log("Saving program:", {
+  //     programDetails: form,
+  //     sessions,
+  //   });
+  // };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary p-4">
-      <Text className="text-md text-gray-100">ID: {id}</Text>
-      <Text className="text-2xl font-bold text-white mb-4">
-        {program.programName}
-      </Text>
-      <Text className="text-md text-gray-100 mb-4">
-        Number of weeks: {program.numberOfWeeks}
-      </Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView
+        className="flex-1 bg-[#161622]"
+        edges={["left", "right", "bottom"]}
+      >
+        <StatusBar barStyle="light-content" />
 
-      <FlatList
-        data={program.sessions}
-        keyExtractor={(session) => session._id}
-        renderItem={({ item: session }) => (
-          <View className="mb-4 bg-secondary p-3 rounded-lg">
-            <TouchableOpacity onPress={() => toggleSession(session._id)}>
-              <Text className="text-lg text-white font-semibold">
-                {session.sessionName}
-              </Text>
-            </TouchableOpacity>
-            {expandedSessions[session._id] && (
-              <View className="mt-2">
-                <Text className="text-sm text-gray-300">
-                  Week {session.weekNumber}, Day {session.dayNumber}
-                </Text>
-                <Text className="text-md text-gray-200 mt-2">Exercises:</Text>
-                {session.exercises.length > 0 ? (
-                  session.exercises.map((exercise, index) => (
-                    <Text key={index} className="text-sm text-gray-300">
-                      - {exercise.exerciseName} ({exercise.duration} min)
-                    </Text>
-                  ))
-                ) : (
-                  <Text className="text-sm text-gray-400">
-                    No exercises available
-                  </Text>
-                )}
-              </View>
-            )}
-          </View>
-        )}
-      />
-    </SafeAreaView>
+        {/* Sessions Container */}
+        <View style={{ flex: 1, backgroundColor: "#161622" }}>
+          <Animated.ScrollView
+            ref={scrollViewRef}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            style={{ flex: 1, position: "relative" }}
+            contentContainerStyle={{
+              height: SESSIONS.length * SESSION_HEIGHT,
+              paddingTop: 10,
+              borderColor: "red",
+              borderWidth: 1,
+            }}
+          >
+            {SESSIONS.map((session) => (
+              <MovableSession
+                key={session.id}
+                id={session.id}
+                name={session.name}
+                numberOfExercises={session.numberOfExercises}
+                weekNumber={session.weekNumber}
+                image={session.image}
+                positions={positions}
+                scrollY={scrollY}
+                sessionCount={SESSIONS.length}
+                scrollViewRef={scrollViewRef}
+              />
+            ))}
+          </Animated.ScrollView>
+        </View>
+
+        {/* Add Session Button */}
+        <View className="px-4 py-4 bg-[#161622]">
+          <CustomSecondaryButton
+            title="Add Session"
+            icon="add"
+            handlePress={() => {}}
+          />
+        </View>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
-export default ProgramDetails;
+export default CreateProgram;

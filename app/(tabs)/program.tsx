@@ -1,62 +1,27 @@
-// src/app/program/index.tsx
-import { FlatList, Text, View } from "react-native";
-import React, { useRef, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CustomButton from "@/components/CustomButton";
-import TrainingProgram from "@/components/TrainingProgram";
+import { View, Text } from "react-native";
+import React, { useRef, useState, useEffect } from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import CustomBottomSheetModal from "@/components/CustomBottomSheetModal";
 import { router } from "expo-router";
-import useApi from "@/hooks/useApi";
-import Constants from "expo-constants";
+import CustomButton from "@/components/CustomButton";
+import CustomBottomSheetModal from "@/components/CustomBottomSheetModal";
+import ProgramList from "@/components/ProgramList";
+import usePrograms from "@/hooks/usePrograms";
 
-const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
-
-interface Program {
-  _id: string;
-  programName: string;
-  numberOfWeeks: number;
-}
-
-const Program = () => {
+const ProgramPage = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(
     null
   );
-  const [programs, setPrograms] = useState<Program[]>([]);
 
   const {
+    programs,
     isLoading,
     error,
-    callApi: fetchPrograms,
-  } = useApi<Program[]>(`${BASE_URL}program/list`, "GET", {
-    onSuccess: (data) => setPrograms(data),
-    onError: (error) => console.error("Failed to fetch programs:", error),
-  });
-
-  const { callApi: duplicateProgram } = useApi<Program>(
-    `${BASE_URL}program/${selectedProgramId}/duplicate`,
-    "POST",
-    {
-      onSuccess: () => {
-        fetchPrograms();
-        bottomSheetRef.current?.dismiss();
-      },
-      onError: (error) => console.error("Failed to duplicate program:", error),
-    }
-  );
-
-  const { callApi: deleteProgram } = useApi<{ message: string }>(
-    `${BASE_URL}program/${selectedProgramId}/delete`,
-    "DELETE",
-    {
-      onSuccess: () => {
-        fetchPrograms();
-        bottomSheetRef.current?.dismiss();
-      },
-      onError: (error) => console.error("Failed to delete program:", error),
-    }
-  );
+    fetchPrograms,
+    duplicateProgram,
+    deleteProgram,
+  } = usePrograms();
 
   useEffect(() => {
     fetchPrograms();
@@ -65,18 +30,6 @@ const Program = () => {
   const handleEdit = (programId: string) => {
     router.push(`/program/edit?id=${programId}`);
     bottomSheetRef.current?.dismiss();
-  };
-
-  const handleDuplicate = async (programId: string) => {
-    try {
-      await duplicateProgram();
-    } catch (error) {}
-  };
-
-  const handleDelete = async (programId: string) => {
-    try {
-      await deleteProgram();
-    } catch (error) {}
   };
 
   const bottomSheetOptions = [
@@ -90,25 +43,20 @@ const Program = () => {
       id: "duplicate",
       label: "Duplicate Program",
       iconName: "content-copy",
-      onPress: () => selectedProgramId && handleDuplicate(selectedProgramId),
+      onPress: () => selectedProgramId && duplicateProgram(selectedProgramId),
     },
     {
       id: "delete",
       label: "Delete Program",
       iconName: "delete",
-      onPress: () => selectedProgramId && handleDelete(selectedProgramId),
+      onPress: () => selectedProgramId && deleteProgram(selectedProgramId),
       destructive: true,
     },
   ];
 
-  const handlePresentModalPress = (programId: string) => {
-    setSelectedProgramId(programId);
-    bottomSheetRef.current?.present();
-  };
-
   return (
     <SafeAreaView className="bg-primary h-full">
-      <View className="w-full px-4 mt-8">
+      <View className="w-full mt-8">
         <CustomButton
           title="Create New Program"
           handlePress={() => router.push("/program/create-program")}
@@ -120,29 +68,16 @@ const Program = () => {
           </View>
         )}
 
-        {isLoading ? (
-          <View className="flex items-center justify-center h-40">
-            <Text>Loading programs...</Text>
-          </View>
-        ) : (
-          <FlatList
-            className="my-4"
-            data={programs}
-            keyExtractor={(item) => item._id.toString()}
-            renderItem={({ item }) => (
-              <TrainingProgram
-                id={item._id}
-                programName={item.programName}
-                numberOfWeeks={item.numberOfWeeks}
-                onPress={() => {
-                  router.push(`/program/program-details?id=${item._id}`);
-                }}
-                onPressMore={() => handlePresentModalPress(item._id)}
-              />
-            )}
-          />
-        )}
+        <ProgramList
+          programs={programs}
+          isLoading={isLoading}
+          onSelect={(id) => {
+            setSelectedProgramId(id);
+            bottomSheetRef.current?.present();
+          }}
+        />
       </View>
+
       <CustomBottomSheetModal
         ref={bottomSheetRef}
         options={bottomSheetOptions}
@@ -151,4 +86,4 @@ const Program = () => {
   );
 };
 
-export default Program;
+export default ProgramPage;

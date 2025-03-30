@@ -1,43 +1,62 @@
 import React from "react";
-import { View, Text, Animated, Switch } from "react-native";
+import { View, Text, Switch } from "react-native";
 import FormField from "@/components/FormField";
-import { ProgramFormData } from "../../types/programTypes";
 import ProgramLengthDropdown from "../program/ProgramLengthDropdown";
+import CustomButton from "../CustomButton";
 
 interface ProgramFormProps {
-  form: ProgramFormData;
-  updateForm: (field: keyof ProgramFormData, value: string) => void;
+  programName: string;
+  setProgramName: (name: string) => void;
+  programLength: number | null;
+  setProgramLength: (length: number | null) => void;
+  programDescription: string;
+  setProgramDescription: (name: string) => void;
   isMultiWeek: boolean;
   setIsMultiWeek: (value: boolean) => void;
-  formAnimation: Animated.AnimatedInterpolation<number>;
-  formOpacity: Animated.AnimatedInterpolation<number>;
+  isRepeated: boolean;
+  setIsRepeated: (value: boolean) => void;
+  handleCreateProgram: () => void;
 }
 
 export const ProgramForm: React.FC<ProgramFormProps> = ({
-  form,
-  updateForm,
+  programName,
+  setProgramName,
+  programLength,
+  setProgramLength,
+  programDescription,
+  setProgramDescription,
   isMultiWeek,
   setIsMultiWeek,
-  formAnimation,
-  formOpacity,
+  isRepeated,
+  setIsRepeated,
+  handleCreateProgram,
 }) => {
   return (
-    <Animated.View
-      style={{
-        height: formAnimation,
-        opacity: formOpacity,
-        overflow: "hidden",
-        zIndex: 10,
-      }}
-      className="absolute top-0 left-0 right-0 bg-primary"
-    >
+    <View className="bg-primary">
       <View className="px-4">
         <FormField
           otherStyles="mb-4"
-          title="Name Your Program"
-          value={form.programName}
-          handleChangeText={(text: string) => updateForm("programName", text)}
+          title="Name Your Program*"
+          value={programName}
+          handleChangeText={(text: string) => setProgramName(text)}
         />
+        <FormField
+          otherStyles="mb-4"
+          title="Program Description"
+          value={programDescription}
+          handleChangeText={(text: string) => setProgramDescription(text)}
+        />
+        <View className="flex-row items-center">
+          <Switch
+            value={isRepeated}
+            onValueChange={(value) => setIsRepeated(value)}
+            thumbColor={isRepeated ? "#CDCDE0" : "#CDCDE0"}
+            trackColor={{ false: "#1E1E2D", true: "#FF9C01" }}
+          />
+          <Text className="font-pmedium text-white ml-2">
+            Repeat program after completion
+          </Text>
+        </View>
 
         <View className="flex-row items-center">
           <Switch
@@ -52,14 +71,21 @@ export const ProgramForm: React.FC<ProgramFormProps> = ({
         </View>
 
         {isMultiWeek && (
-          <View className="mt-4">
+          <View>
             <ProgramLengthDropdown
-              value={form.programLength ? form.programLength.toString() : null}
-              setValue={(value) => updateForm("programLength", value)}
+              value={programLength ? programLength.toString() : null}
+              setValue={(value) => setProgramLength(Number(value))}
             />
           </View>
         )}
+        <CustomButton
+          title="Create Program"
+          handlePress={() => {
+            handleCreateProgram();
+          }}
+          containerStyle="mt-8 mb-4"
+        />
       </View>
-    </Animated.View>
+    </View>
   );
 };

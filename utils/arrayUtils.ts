@@ -1,3 +1,6 @@
+import { Positions } from "../types/sessionTypes";
+import { Session } from "../types/sessionTypes";
+
 export function clamp(
   value: number,
   lowerBound: number,
@@ -7,31 +10,20 @@ export function clamp(
   return Math.max(lowerBound, Math.min(value, upperBound));
 }
 
-// export function shuffle<T>(array: T[]): T[] {
-//   const newArray = [...array];
-//   let counter = newArray.length;
-
-//   while (counter > 0) {
-//     let index = Math.floor(Math.random() * counter);
-//     counter--;
-//     [newArray[counter], newArray[index]] = [newArray[index], newArray[counter]];
-//   }
-
-//   return newArray;
-// }
-
-export function objectMove<T>(
-  object: Record<string, T>,
-  from: T,
-  to: T
-): Record<string, T> {
+export function objectMove(
+  object: Positions,
+  from: number,
+  to: number
+): Positions {
   "worklet";
-  const newObject = { ...object };
+  const newObject: Positions = Object.assign({}, object);
 
   for (const id in object) {
     if (object[id] === from) {
       newObject[id] = to;
-    } else if (object[id] === to) {
+    }
+
+    if (object[id] === to) {
       newObject[id] = from;
     }
   }
@@ -39,15 +31,12 @@ export function objectMove<T>(
   return newObject;
 }
 
-interface ListItem {
-  id: string;
-}
+export function listToObject(list: Session[]): Positions {
+  const values = Object.values(list);
+  const object: Positions = {};
 
-export function listToObject(list: ListItem[]): Record<string, number> {
-  const object: Record<string, number> = {};
-
-  for (let i = 0; i < list.length; i++) {
-    object[list[i].id] = i;
+  for (let i = 0; i < values.length; i++) {
+    object[values[i].id] = i;
   }
 
   return object;

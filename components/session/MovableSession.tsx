@@ -1,6 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, Platform } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  Platform,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+  findNodeHandle,
+  UIManager,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
+  SharedValue,
   cancelAnimation,
   runOnJS,
   useAnimatedReaction,
@@ -10,79 +19,83 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import { BlurView } from "expo-blur";
-import { useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FontAwesome } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-// Constants
-export const SESSION_HEIGHT = 70;
-export const SCROLL_HEIGHT_THRESHOLD = SESSION_HEIGHT;
+import { MovableSessionProps } from "../../types/sessionTypes";
+import {
+  SESSION_HEIGHT,
+  SCROLL_HEIGHT_THRESHOLD,
+} from "../../constants/sessionConstants";
+import { clamp, objectMove } from "../../utils/arrayUtils";
+import { SessionItem } from "./SessionItem";
 
-// Helper functions
-function clamp(value, lowerBound, upperBound) {
-  "worklet";
-  return Math.max(lowerBound, Math.min(value, upperBound));
-}
-
-function objectMove(object, from, to) {
-  "worklet";
-  const newObject = Object.assign({}, object);
-
-  for (const id in object) {
-    if (object[id] === from) {
-      newObject[id] = to;
-    }
-
-    if (object[id] === to) {
-      newObject[id] = from;
-    }
+// Enable layout animation for Android
+if (Platform.OS === "android") {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
   }
-
-  return newObject;
 }
-
-const Session = ({ name, numberOfExercises, onPress }) => {
-  return (
-    <View
-      className="flex-row items-center justify-between p-4 bg-[#212134] rounded-lg my-1 mx-4"
-      style={{ height: SESSION_HEIGHT }}
-    >
-      <View className="flex-row items-center">
-        <View className="mr-3">
-          <FontAwesome name="bars" size={18} color="#9797B9" />
-        </View>
-        <View>
-          <Text className="text-white font-pmedium">{name}</Text>
-          <Text className="text-[#9797B9] text-sm font-pregular">
-            {numberOfExercises}{" "}
-            {numberOfExercises === 1 ? "exercise" : "exercises"}
-          </Text>
-        </View>
-      </View>
-      <FontAwesome name="angle-right" size={20} color="#9797B9" />
-    </View>
-  );
-};
 
 function MovableSession({
   id,
   name,
   numberOfExercises,
+  weekNumber,
+  image,
   positions,
   scrollY,
-  sessionsCount,
-  onPress,
-  setSessions,
-  currentWeek,
-}) {
+  sessionCount,
+  scrollViewRef, // Add reference to the scrollview
+}: MovableSessionProps): React.ReactElement {
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [moving, setMoving] = useState(false);
-  const top = useSharedValue(positions.value[id] * SESSION_HEIGHT);
+  const [moving, setMoving] = useState<boolean>(false);
+  const top = useSharedValue(0);
+  // const itemRef = useRef(null);
 
-  // Update position when the order changes
+  // Shared values to store measurements
+  const itemPosition = useSharedValue({ x: 0, y: 0 });
+  const scrollViewPosition = useSharedValue({ x: 0, y: 0 });
+  const initialTouchOffset = useSharedValue({ x: 0, y: 0 });
+
+  useEffect(() => {
+    top.value = positions.value[id] * SESSION_HEIGHT;
+  }, []);
+
+  // Measure the position of our scrollview and item when needed
+  // Removed duplicate declaration of scrollViewRef
+  const itemRef = useRef<View>(null);
+
+  const measurePositions = () => {
+    if (!scrollViewRef.current || !itemRef.current) return;
+
+    scrollViewRef.current.measure?.(
+      (
+        scrollX: number,
+        scrollY: number,
+        scrollWidth: number,
+        scrollHeight: number,
+        pageX: number,
+        pageY: number
+      ) => {
+        scrollViewPosition.value = { x: pageX, y: pageY };
+
+        itemRef.current?.measure?.(
+          (
+            itemX: number,
+            itemY: number,
+            itemWidth: number,
+            itemHeight: number,
+            itemPageX: number,
+            itemPageY: number
+          ) => {
+            itemPosition.value = { x: itemPageX, y: itemPageY };
+          }
+        );
+      }
+    );
+  };
+
   useAnimatedReaction(
     () => positions.value[id],
     (currentPosition, previousPosition) => {
@@ -95,61 +108,68 @@ function MovableSession({
     [moving]
   );
 
-  const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
-    if (Platform.OS === "ios") {
-      Haptics.impactAsync(style);
-    }
-  };
-
-  // Update the actual sessions array when positions change
-  const updateSessionsOrder = (newPositions) => {
-    setSessions((prev) => {
-      // Create a new array based on the position values
-      const weekSessions = prev.filter((s) => s.weekNumber === currentWeek);
-      const otherSessions = prev.filter((s) => s.weekNumber !== currentWeek);
-
-      // Sort the current week's sessions based on new positions
-      const sortedWeekSessions = [...weekSessions].sort(
-        (a, b) => newPositions[a.id] - newPositions[b.id]
-      );
-
-      // Combine with sessions from other weeks
-      return [...sortedWeekSessions, ...otherSessions];
-    });
-  };
-
-  const dragGesture = Gesture.Pan()
-    .onBegin(() => {
+  // Create separate gestures
+  const longPressGesture = Gesture.LongPress()
+    .minDuration(200)
+    .onStart(() => {
+      runOnJS(measurePositions)();
       runOnJS(setMoving)(true);
-      runOnJS(triggerHaptic)(Haptics.ImpactFeedbackStyle.Medium);
+
+      if (Platform.OS === "ios") {
+        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    });
+
+  const panGesture = Gesture.Pan()
+    .activateAfterLongPress(200) // Only activate the pan after long press
+    .onStart((event) => {
+      // Calculate the offset between touch point and item's top edge
+      // This captures where on the item the user grabbed it
+      initialTouchOffset.value = {
+        x: event.x,
+        y: event.y,
+      };
     })
     .onUpdate((event) => {
-      const positionY = event.absoluteY + scrollY.value;
+      if (!moving) return;
 
-      // Direct manipulation for smoother dragging
-      top.value = positionY - SESSION_HEIGHT;
+      // Get absolute position relative to the scrollView
+      // We subtract the initial touch offset to get the desired position
+      const relativeY =
+        event.absoluteY -
+        scrollViewPosition.value.y -
+        initialTouchOffset.value.y +
+        scrollY.value;
 
-      // Handle scrolling
-      if (positionY <= scrollY.value + SCROLL_HEIGHT_THRESHOLD) {
+      // Update the position directly for smooth dragging
+      top.value = relativeY;
+
+      // Handle scrolling when reaching edges
+      if (relativeY <= SCROLL_HEIGHT_THRESHOLD) {
         // Scroll up
-        scrollY.value = withTiming(0, { duration: 2000 });
+        scrollY.value = withTiming(Math.max(0, scrollY.value - 200), {
+          duration: 1000,
+        });
       } else if (
-        positionY >=
-        scrollY.value + dimensions.height - SCROLL_HEIGHT_THRESHOLD
+        relativeY >=
+        dimensions.height - SCROLL_HEIGHT_THRESHOLD - insets.bottom
       ) {
         // Scroll down
-        const contentHeight = sessionsCount * SESSION_HEIGHT;
+        const contentHeight = sessionCount * SESSION_HEIGHT;
         const containerHeight = dimensions.height - insets.top - insets.bottom;
-        const maxScroll = contentHeight - containerHeight + 200; // Extra space for bottom buttons
-        scrollY.value = withTiming(maxScroll, { duration: 2000 });
+        const maxScroll = Math.max(0, contentHeight - containerHeight);
+        scrollY.value = withTiming(Math.min(maxScroll, scrollY.value + 200), {
+          duration: 1000,
+        });
       } else {
         cancelAnimation(scrollY);
       }
 
+      // Calculate new position in the list
       const newPosition = clamp(
-        Math.floor(positionY / SESSION_HEIGHT),
+        Math.round(relativeY / SESSION_HEIGHT),
         0,
-        sessionsCount - 1
+        sessionCount - 1
       );
 
       if (newPosition !== positions.value[id]) {
@@ -158,58 +178,72 @@ function MovableSession({
           positions.value[id],
           newPosition
         );
-        runOnJS(triggerHaptic)();
+
+        if (Platform.OS === "ios") {
+          runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
+        }
       }
     })
     .onFinalize(() => {
+      // Snap to final position
       top.value = withSpring(positions.value[id] * SESSION_HEIGHT);
       runOnJS(setMoving)(false);
-      runOnJS(updateSessionsOrder)(positions.value);
     });
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
+  // Combine gestures correctly - IMPORTANT: we're using Simultaneous instead of a direct composition
+  const combinedGesture = Gesture.Simultaneous(longPressGesture, panGesture);
+
+  const animatedStyle = useAnimatedStyle<ViewStyle>(() => {
+    const baseStyle: ViewStyle = {
       position: "absolute",
       left: 0,
       right: 0,
       top: top.value,
       zIndex: moving ? 1 : 0,
-      shadowColor: "#000",
-      shadowOpacity: moving ? 0.3 : 0,
-      shadowRadius: 10,
-      shadowOffset: {
-        height: 0,
-        width: 0,
-      },
-      elevation: moving ? 5 : 0,
     };
+
+    // For iOS, use shadow properties
+    if (Platform.OS === "ios" && moving) {
+      return {
+        ...baseStyle,
+        shadowColor: "black",
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 0 },
+      };
+    }
+    // For Android, use elevation
+    else if (Platform.OS === "android" && moving) {
+      return {
+        ...baseStyle,
+        elevation: 5,
+      };
+    }
+
+    return baseStyle;
   }, [moving]);
 
   return (
-    <Animated.View style={animatedStyle}>
-      {moving ? (
-        <BlurView intensity={80} tint="dark">
-          <GestureDetector gesture={dragGesture}>
-            <View>
-              <Session
-                name={name}
-                numberOfExercises={numberOfExercises}
-                onPress={onPress}
-              />
-            </View>
-          </GestureDetector>
-        </BlurView>
-      ) : (
-        <GestureDetector gesture={dragGesture}>
-          <View>
-            <Session
+    <Animated.View ref={itemRef} style={animatedStyle}>
+      <GestureDetector gesture={combinedGesture}>
+        <View style={{ maxWidth: "80%" }}>
+          <View
+            style={{
+              backgroundColor: moving
+                ? "rgba(240, 240, 240, 0.9)"
+                : "transparent",
+              borderRadius: 8,
+            }}
+          >
+            <SessionItem
               name={name}
               numberOfExercises={numberOfExercises}
-              onPress={onPress}
+              weekNumber={weekNumber}
+              image={image}
             />
           </View>
-        </GestureDetector>
-      )}
+        </View>
+      </GestureDetector>
     </Animated.View>
   );
 }
