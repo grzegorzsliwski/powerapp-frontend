@@ -1,6 +1,6 @@
-import React, { useLayoutEffect, useState, useRef } from "react";
+import React, { useLayoutEffect, useState, useRef, useEffect } from "react";
 import { View, Text } from "react-native";
-import { useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Animated from "react-native-reanimated";
@@ -16,9 +16,30 @@ import MovableSession from "@/components/session/MovableSession";
 import { SESSIONS } from "@/data/sessionData";
 import { SESSION_HEIGHT } from "@/constants/sessionConstants";
 import { usePositions } from "@/hooks/usePosition";
+import useApi from "@/hooks/useApi";
+import Constants from "expo-constants";
+import { Program } from "@/types/programTypes";
 
 const CreateProgram = () => {
+  const { id } = useLocalSearchParams();
   const navigation = useNavigation();
+  const [program, setProgram] = useState<Program | null>(null);
+
+  const { isLoading, error, callApi } = useApi(
+    `${Constants.expoConfig?.extra?.BASE_URL}program/${id}`,
+    "GET",
+    {
+      onSuccess: (data) => {
+        setProgram(data);
+        console.log(data);
+      },
+      onError: (err) => console.error("Error fetching program details:", err),
+    }
+  );
+
+  useEffect(() => {
+    callApi();
+  }, [id]);
 
   const { positions, scrollY, scrollViewRef, handleScroll } =
     usePositions(SESSIONS);
@@ -45,25 +66,6 @@ const CreateProgram = () => {
     });
   }, []);
 
-  // const addSession = () => {
-  //   const newSession = {
-  //     id: SESSIONS.length + 1,
-  //     name: `Session ${SESSIONS.length + 1}`,
-  //     numberOfExercises: 0,
-  //     weekNumber: currentWeek ?? 1,
-  //     image: "https://example.com/image.png",
-  //   };
-  //   SESSIONS.push(newSession);
-  //   setSessions([...SESSIONS]);
-  // };
-
-  // const saveProgram = () => {
-  //   console.log("Saving program:", {
-  //     programDetails: form,
-  //     sessions,
-  //   });
-  // };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView
@@ -72,18 +74,19 @@ const CreateProgram = () => {
       >
         <StatusBar barStyle="light-content" />
 
-        {/* Sessions Container */}
         <View style={{ flex: 1, backgroundColor: "#161622" }}>
+          <WeekSelector
+            programLength={program?.length ?? 1}
+            currentWeek={1}
+            setCurrentWeek={() => {}}
+          />
           <Animated.ScrollView
             ref={scrollViewRef}
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            style={{ flex: 1, position: "relative" }}
+            style={{ flex: 1 }}
             contentContainerStyle={{
               height: SESSIONS.length * SESSION_HEIGHT,
-              paddingTop: 10,
-              borderColor: "red",
-              borderWidth: 1,
             }}
           >
             {SESSIONS.map((session) => (
@@ -103,7 +106,6 @@ const CreateProgram = () => {
           </Animated.ScrollView>
         </View>
 
-        {/* Add Session Button */}
         <View className="px-4 py-4 bg-[#161622]">
           <CustomSecondaryButton
             title="Add Session"

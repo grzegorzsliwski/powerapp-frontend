@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, TouchableOpacity, Animated } from "react-native";
 import { SessionProps } from "../../types/sessionTypes";
 import { SESSION_HEIGHT } from "../../constants/sessionConstants";
 
@@ -9,119 +9,71 @@ export const SessionItem = ({
   weekNumber,
   image,
 }: SessionProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const heightAnim = new Animated.Value(SESSION_HEIGHT); // Move this inside useEffect if needed
+
+  const toggleExpand = () => {
+    setIsExpanded((prev) => !prev);
+    Animated.timing(heightAnim, {
+      toValue: isExpanded ? SESSION_HEIGHT : SESSION_HEIGHT * 2,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  useEffect(() => {
+    return () => {
+      heightAnim.stopAnimation(); // Cleanup animation when unmounting
+    };
+  }, []);
+
   return (
-    <View
+    <Animated.View
       style={{
         flexDirection: "row",
         alignItems: "center",
-        height: SESSION_HEIGHT,
+        height: heightAnim,
         padding: 10,
       }}
     >
-      {/* <Image
-        source={{ uri: image }}
-        style={{ height: 50, width: 50, borderRadius: 4 }}
-      /> */}
-
-      <View
-        style={{
-          marginLeft: 10,
-        }}
+      <TouchableOpacity
+        className=" bg-black-100 w-full rounded-2xl"
+        onPress={toggleExpand}
       >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "600",
-            marginBottom: 4,
-          }}
-        >
-          {name}
-        </Text>
+        <View className="flex-row items-center p-2">
+          <View className="bg-black-200 p-2 rounded-xl">
+            <Image
+              source={require("@/assets/images/exerciseimg.png")}
+              className="w-14 h-14"
+              resizeMode="contain"
+            />
+          </View>
+          <View className="flex-1 ml-4">
+            <Text className="font-pmedium text-l text-white line-clamp-1 mb-2">
+              {name}
+            </Text>
+            <Text className="font-pmedium text-xs text-gray-100">
+              {`${numberOfExercises} exercises`}
+            </Text>
+          </View>
+          <TouchableOpacity className="py-4 rounded-xl" onPress={() => {}}>
+            <Image
+              source={require("@/assets/icons/more.png")}
+              className="w-8 h-8"
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
 
-        <Text style={{ fontSize: 12, color: "gray" }}>{numberOfExercises}</Text>
-      </View>
-    </View>
+        {isExpanded && (
+          <View className="p-2 mt-2 bg-black-300 rounded-xl">
+            <Text className="text-gray-200">Week {weekNumber}</Text>
+            <Text className="text-gray-200">
+              More details about this session...
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
-
-// import React from "react";
-// import {
-//   Animated,
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   Pressable,
-// } from "react-native";
-// import { Ionicons } from "@expo/vector-icons";
-// import { Session, SessionItemProps } from "../../types/sessionTypes";
-
-// export const SessionItem = ({
-//   session,
-//   index,
-//   isExpanded,
-//   onToggle,
-//   onPress,
-//   onDelete,
-//   onLongPress,
-//   animatedHeight,
-//   isDragging = false,
-// }: SessionItemProps) => {
-//   return (
-//     <Pressable
-//       onLongPress={onLongPress}
-//       delayLongPress={300}
-//       onPress={() => onToggle(index)}
-//       style={{
-//         opacity: isDragging ? 0.7 : 1,
-//       }}
-//     >
-//       <Animated.View
-//         className={`${
-//           isDragging ? "bg-gray-700" : "bg-[#1E1E2E]"
-//         } mb-4 rounded-md overflow-hidden`}
-//         style={{
-//           height: animatedHeight,
-//           borderWidth: isDragging ? 2 : 0,
-//           borderColor: isDragging ? "#4382FF" : "transparent",
-//         }}
-//       >
-//         <View className="flex-row justify-between items-center px-4 py-3">
-//           <View className="flex-row items-center flex-1">
-//             <Ionicons
-//               name="reorder-three"
-//               size={22}
-//               color="#9FA2B4"
-//               style={{ marginRight: 8 }}
-//             />
-//             <Text className="text-white font-pmedium text-base flex-1">
-//               {session.name}
-//             </Text>
-//           </View>
-//           <View className="flex-row items-center">
-//             <Text className="text-gray-400 text-xs mr-2">
-//               {session.numberOfExercises} exercises
-//             </Text>
-//             <TouchableOpacity
-//               onPress={() => onPress(session.id)}
-//               className="p-1 bg-[#4382FF] rounded-full"
-//             >
-//               <Ionicons name="chevron-forward" size={16} color="#FFF" />
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-
-//         {isExpanded && (
-//           <View className="px-4 py-3 bg-[#161622]">
-//             <TouchableOpacity
-//               onPress={() => onDelete(session.id)}
-//               className="flex-row items-center"
-//             >
-//               <Ionicons name="trash-outline" size={18} color="#FF4B55" />
-//               <Text className="text-[#FF4B55] ml-2">Delete Session</Text>
-//             </TouchableOpacity>
-//           </View>
-//         )}
-//       </Animated.View>
-//     </Pressable>
-//   );
-// };

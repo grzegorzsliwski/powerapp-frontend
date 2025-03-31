@@ -20,10 +20,6 @@ const TrainingProgram: React.FC<ExerciseProps> = ({
     <TouchableOpacity
       className="p-2 bg-primary w-full"
       onPress={() => onPress(id)}
-      style={{
-        borderBottomWidth: 1,
-        borderBottomColor: "#CDCDE0",
-      }}
     >
       <View className="flex-row items-center p-2">
         <View className="bg-black-200 p-2 rounded-xl">

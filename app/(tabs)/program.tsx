@@ -60,6 +60,7 @@ const ProgramPage = () => {
         <CustomButton
           title="Create New Program"
           handlePress={() => router.push("/program/create-program")}
+          containerStyle="mx-4"
         />
 
         {error && (
