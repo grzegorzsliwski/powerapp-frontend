@@ -1,5 +1,6 @@
 import { Animated, GestureResponderEvent } from "react-native";
 import { SharedValue } from "react-native-reanimated";
+import { Exercise } from "./programTypes";
 
 export interface Session {
   id: string;
@@ -7,6 +8,7 @@ export interface Session {
   numberOfExercises: number;
   weekNumber: number;
   image?: string;
+  exercises?: Exercise[];
 }
 
 export interface SessionProps {

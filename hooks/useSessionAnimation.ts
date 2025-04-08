@@ -33,9 +33,10 @@ export const useSessionAnimation = (filteredSessions: Session[]) => {
       if (animatedHeightsRef.current[i]) {
         Animated.spring(animatedHeightsRef.current[i], {
           toValue: 50,
-          tension: 100,
-          friction: 12,
+          tension: 10000,
+          friction: 0.1,
           useNativeDriver: false,
+          mass: 1000,
         }).start();
       }
     });
@@ -57,8 +58,9 @@ export const useSessionAnimation = (filteredSessions: Session[]) => {
         const targetHeight = newExpandedIndex === i ? 100 : 50;
         Animated.spring(animatedHeightsRef.current[i], {
           toValue: targetHeight,
-          tension: 100,
-          friction: 12,
+          tension: 10000,
+          friction: 0.1,
+          mass: 1000,
           useNativeDriver: false,
         }).start();
       }

@@ -7,10 +7,7 @@ import Animated from "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import CustomHeaderButton from "@/components/CustomHeaderButton";
-import { ProgramForm } from "@/components/program/ProgramForm";
 import { WeekSelector } from "@/components/program/WeekSelector";
-import { useProgramForm } from "@/hooks/useProgramForm";
-import { useFormAnimation } from "@/hooks/useFormAnimation";
 import CustomSecondaryButton from "@/components/CustomSecondaryButton";
 import MovableSession from "@/components/session/MovableSession";
 import { SESSIONS } from "@/data/sessionData";
@@ -19,6 +16,9 @@ import { usePositions } from "@/hooks/usePosition";
 import useApi from "@/hooks/useApi";
 import Constants from "expo-constants";
 import { Program } from "@/types/programTypes";
+
+// Height per exercise when expanded
+const EXERCISE_HEIGHT = 50;
 
 const CreateProgram = () => {
   const { id } = useLocalSearchParams();
@@ -69,7 +69,6 @@ const CreateProgram = () => {
     });
   }, []);
 
-  // Handle clicks outside of sessions to collapse expanded session
   const handleOutsidePress = () => {
     if (expandedSessionId) {
       setExpandedSessionId(null);
@@ -78,12 +77,35 @@ const CreateProgram = () => {
 
   const BUTTON_HEIGHT = 60;
   const MARGIN_VERTICAL = 4;
-  // Calculate total height considering expanded session
+
+  // Calculate extra height needed for expanded session
+  const getExpandedExtraHeight = () => {
+    if (!expandedSessionId) return 0;
+
+    const expandedSession = SESSIONS.find((s) => s.id === expandedSessionId);
+    if (!expandedSession) return 0;
+
+    return expandedSession.numberOfExercises * EXERCISE_HEIGHT;
+  };
+
   const totalHeight =
     SESSIONS.length * SESSION_HEIGHT +
-    (expandedSessionId ? SESSION_HEIGHT : 0) + // Add extra height for expanded session
+    getExpandedExtraHeight() +
     BUTTON_HEIGHT +
     MARGIN_VERTICAL * 2;
+
+  // Generate some mock exercises for each session
+  const sessionsWithExercises = SESSIONS.map((session) => {
+    const exerciseCount = session.numberOfExercises;
+    const exercises = Array.from({ length: exerciseCount }, (_, i) => ({
+      id: `exercise-${session.id}-${i}`,
+      name: `Exercise ${i + 1}`,
+      sets: 3 + Math.floor(Math.random() * 3), // Random between 3-5 sets
+      reps: 8 + Math.floor(Math.random() * 8), // Random between 8-15 reps
+    }));
+
+    return { ...session, exercises };
+  });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -107,9 +129,10 @@ const CreateProgram = () => {
               style={{ flex: 1 }}
               contentContainerStyle={{
                 height: totalHeight,
+                paddingBottom: BUTTON_HEIGHT + MARGIN_VERTICAL * 2,
               }}
             >
-              {SESSIONS.map((session) => (
+              {sessionsWithExercises.map((session) => (
                 <MovableSession
                   key={session.id}
                   id={session.id}
@@ -123,6 +146,7 @@ const CreateProgram = () => {
                   scrollViewRef={scrollViewRef}
                   expandedSessionId={expandedSessionId}
                   setExpandedSessionId={setExpandedSessionId}
+                  exercises={session.exercises}
                 />
               ))}
 

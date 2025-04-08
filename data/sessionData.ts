@@ -1,13 +1,28 @@
 import { SESSION_IMAGES } from "../constants/sessionConstants";
 import { Session } from "../types/sessionTypes";
+import { Exercise } from "@/types/programTypes";
 
 export const SESSIONS: Session[] = [
   {
     id: "session-1",
     name: "Session 1",
-    numberOfExercises: 0,
+    numberOfExercises: 2,
     weekNumber: 1,
     image: SESSION_IMAGES.SESSION,
+    exercises: [
+      {
+        id: "exercise-1",
+        name: "Exercise 1",
+        sets: 3,
+        reps: 10,
+      },
+      {
+        id: "exercise-2",
+        name: "Exercise 2",
+        sets: 3,
+        reps: 12,
+      },
+    ],
   },
   {
     id: "session-2",
