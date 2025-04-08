@@ -4,7 +4,7 @@ import {
   View,
   ViewStyle,
   useWindowDimensions,
-  findNodeHandle,
+  TouchableWithoutFeedback,
   UIManager,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,7 +46,12 @@ function MovableSession({
   scrollY,
   sessionCount,
   scrollViewRef,
-}: MovableSessionProps): React.ReactElement {
+  expandedSessionId,
+  setExpandedSessionId,
+}: MovableSessionProps & {
+  expandedSessionId: string | null;
+  setExpandedSessionId: (id: string | null) => void;
+}): React.ReactElement {
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [moving, setMoving] = useState<boolean>(false);
@@ -55,6 +60,8 @@ function MovableSession({
   const itemPosition = useSharedValue({ x: 0, y: 0 });
   const scrollViewPosition = useSharedValue({ x: 0, y: 0 });
   const initialTouchOffset = useSharedValue({ x: 0, y: 0 });
+
+  const isExpanded = expandedSessionId === id;
 
   useEffect(() => {
     top.value = positions.value[id] * SESSION_HEIGHT;
@@ -92,6 +99,14 @@ function MovableSession({
     );
   };
 
+  const handleToggleExpand = () => {
+    if (isExpanded) {
+      setExpandedSessionId(null);
+    } else {
+      setExpandedSessionId(id);
+    }
+  };
+
   useAnimatedReaction(
     () => positions.value[id],
     (currentPosition, previousPosition) => {
@@ -104,28 +119,33 @@ function MovableSession({
     [moving]
   );
 
-  // Create separate gestures
   const longPressGesture = Gesture.LongPress()
     .minDuration(200)
     .onStart(() => {
-      runOnJS(measurePositions)();
-      runOnJS(setMoving)(true);
+      // Only allow long press if no session is expanded
+      if (expandedSessionId === null) {
+        runOnJS(measurePositions)();
+        runOnJS(setMoving)(true);
 
-      if (Platform.OS === "ios") {
-        runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+        if (Platform.OS === "ios") {
+          runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
+        }
       }
     });
 
   const panGesture = Gesture.Pan()
     .activateAfterLongPress(200)
     .onStart((event) => {
+      // Only allow pan if no session is expanded
+      if (expandedSessionId !== null) return;
+
       initialTouchOffset.value = {
         x: event.x,
         y: event.y,
       };
     })
     .onUpdate((event) => {
-      if (!moving) return;
+      if (!moving || expandedSessionId !== null) return;
 
       const relativeY =
         event.absoluteY -
@@ -172,8 +192,10 @@ function MovableSession({
       }
     })
     .onFinalize(() => {
-      top.value = withSpring(positions.value[id] * SESSION_HEIGHT);
-      runOnJS(setMoving)(false);
+      if (expandedSessionId === null) {
+        top.value = withSpring(positions.value[id] * SESSION_HEIGHT);
+        runOnJS(setMoving)(false);
+      }
     });
 
   const combinedGesture = Gesture.Simultaneous(longPressGesture, panGesture);
@@ -220,6 +242,8 @@ function MovableSession({
               numberOfExercises={numberOfExercises}
               weekNumber={weekNumber}
               image={image}
+              isExpanded={isExpanded}
+              onToggleExpand={handleToggleExpand}
             />
           </View>
         </View>

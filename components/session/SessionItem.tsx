@@ -8,24 +8,24 @@ export const SessionItem = ({
   numberOfExercises,
   weekNumber,
   image,
-}: SessionProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const heightAnim = new Animated.Value(SESSION_HEIGHT); // Move this inside useEffect if needed
+  isExpanded,
+  onToggleExpand,
+}: SessionProps & { isExpanded: boolean; onToggleExpand: () => void }) => {
+  const heightAnim = new Animated.Value(
+    isExpanded ? SESSION_HEIGHT * 2 : SESSION_HEIGHT
+  );
 
-  const toggleExpand = () => {
-    setIsExpanded((prev) => !prev);
+  useEffect(() => {
     Animated.timing(heightAnim, {
-      toValue: isExpanded ? SESSION_HEIGHT : SESSION_HEIGHT * 2,
+      toValue: isExpanded ? SESSION_HEIGHT * 2 : SESSION_HEIGHT,
       duration: 200,
       useNativeDriver: false,
     }).start();
-  };
 
-  useEffect(() => {
     return () => {
-      heightAnim.stopAnimation(); // Cleanup animation when unmounting
+      heightAnim.stopAnimation();
     };
-  }, []);
+  }, [isExpanded]);
 
   return (
     <Animated.View
@@ -37,8 +37,9 @@ export const SessionItem = ({
       }}
     >
       <TouchableOpacity
-        className=" bg-black-100 w-full rounded-2xl"
-        onPress={toggleExpand}
+        className="bg-black-100 w-full rounded-2xl p-1 border-2 border-black-200"
+        onPress={onToggleExpand}
+        activeOpacity={0.8}
       >
         <View className="flex-row items-center p-2">
           <View className="bg-black-200 p-2 rounded-xl">

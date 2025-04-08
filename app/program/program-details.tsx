@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState, useRef, useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableWithoutFeedback } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +24,9 @@ const CreateProgram = () => {
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();
   const [program, setProgram] = useState<Program | null>(null);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(
+    null
+  );
 
   const { isLoading, error, callApi } = useApi(
     `${Constants.expoConfig?.extra?.BASE_URL}program/${id}`,
@@ -66,6 +69,22 @@ const CreateProgram = () => {
     });
   }, []);
 
+  // Handle clicks outside of sessions to collapse expanded session
+  const handleOutsidePress = () => {
+    if (expandedSessionId) {
+      setExpandedSessionId(null);
+    }
+  };
+
+  const BUTTON_HEIGHT = 60;
+  const MARGIN_VERTICAL = 4;
+  // Calculate total height considering expanded session
+  const totalHeight =
+    SESSIONS.length * SESSION_HEIGHT +
+    (expandedSessionId ? SESSION_HEIGHT : 0) + // Add extra height for expanded session
+    BUTTON_HEIGHT +
+    MARGIN_VERTICAL * 2;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView
@@ -74,45 +93,61 @@ const CreateProgram = () => {
       >
         <StatusBar barStyle="light-content" />
 
-        <View style={{ flex: 1, backgroundColor: "#161622" }}>
-          <WeekSelector
-            programLength={program?.length ?? 1}
-            currentWeek={1}
-            setCurrentWeek={() => {}}
-          />
-          <Animated.ScrollView
-            ref={scrollViewRef}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              height: SESSIONS.length * SESSION_HEIGHT,
-            }}
-          >
-            {SESSIONS.map((session) => (
-              <MovableSession
-                key={session.id}
-                id={session.id}
-                name={session.name}
-                numberOfExercises={session.numberOfExercises}
-                weekNumber={session.weekNumber}
-                image={session.image}
-                positions={positions}
-                scrollY={scrollY}
-                sessionCount={SESSIONS.length}
-                scrollViewRef={scrollViewRef}
-              />
-            ))}
-          </Animated.ScrollView>
-        </View>
+        <TouchableWithoutFeedback onPress={handleOutsidePress}>
+          <View style={{ flex: 1, backgroundColor: "#161622" }}>
+            <WeekSelector
+              programLength={program?.length ?? 1}
+              currentWeek={1}
+              setCurrentWeek={() => {}}
+            />
+            <Animated.ScrollView
+              ref={scrollViewRef}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                height: totalHeight,
+              }}
+            >
+              {SESSIONS.map((session) => (
+                <MovableSession
+                  key={session.id}
+                  id={session.id}
+                  name={session.name}
+                  numberOfExercises={session.numberOfExercises}
+                  weekNumber={session.weekNumber}
+                  image={session.image}
+                  positions={positions}
+                  scrollY={scrollY}
+                  sessionCount={SESSIONS.length}
+                  scrollViewRef={scrollViewRef}
+                  expandedSessionId={expandedSessionId}
+                  setExpandedSessionId={setExpandedSessionId}
+                />
+              ))}
 
-        <View className="px-4 py-4 bg-[#161622]">
-          <CustomSecondaryButton
-            title="Add Session"
-            icon="add"
-            handlePress={() => {}}
-          />
-        </View>
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: BUTTON_HEIGHT,
+                  paddingHorizontal: 8,
+                  paddingBottom: 16,
+                  backgroundColor: "#161622",
+                  marginVertical: 4,
+                }}
+              >
+                <CustomSecondaryButton
+                  title="Add Session"
+                  icon="add"
+                  handlePress={() => {}}
+                />
+              </View>
+            </Animated.ScrollView>
+          </View>
+        </TouchableWithoutFeedback>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
