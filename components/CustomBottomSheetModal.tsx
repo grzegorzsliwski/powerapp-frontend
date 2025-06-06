@@ -16,6 +16,10 @@ export type OptionItem = {
   destructive?: boolean;
 };
 
+type CustomBottomSheetModalProps2 = {
+  options: OptionItem[];
+};
+
 type CustomBottomSheetModalProps = {
   options: OptionItem[];
 };
